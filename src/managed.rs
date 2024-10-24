@@ -12,7 +12,7 @@ use tokio_tungstenite::{connect_async, tungstenite::Message, MaybeTlsStream, Web
 
 use crate::{quoter::Quoter, BinanceOrderBook, Depth, DepthUpdate};
 
-pub struct ManagedOrderBook<F>
+pub struct ManagedBinanceOrderBook<F>
 where
     F: Fn(&BinanceOrderBook),
 {
@@ -21,7 +21,7 @@ where
     pub callback: F,
 }
 
-impl<F> ManagedOrderBook<F>
+impl<F> ManagedBinanceOrderBook<F>
 where
     F: Fn(&BinanceOrderBook),
 {
@@ -55,7 +55,7 @@ where
     }
 }
 
-impl<F> Future for ManagedOrderBook<F>
+impl<F> Future for ManagedBinanceOrderBook<F>
 where
     F: Fn(&BinanceOrderBook) + Unpin,
 {

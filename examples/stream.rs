@@ -1,4 +1,4 @@
-use orderbook_quoter::{managed::ManagedOrderBook, BinanceOrderBook};
+use orderbook_quoter::{managed::ManagedBinanceOrderBook, BinanceOrderBook};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -6,7 +6,7 @@ async fn main() -> anyhow::Result<()> {
 
     let callback = |book: &BinanceOrderBook| book.print(5);
 
-    let m = ManagedOrderBook::new(symbol.to_string(), callback).await?;
+    let m = ManagedBinanceOrderBook::new(symbol.to_string(), callback).await?;
 
     m.await;
 
