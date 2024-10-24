@@ -2,6 +2,9 @@
 name = "managed-order-book"
 version = "0.1.0"
 edition = "2021"
+description = "Managed order book"
+readme = "README.md"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 anyhow = "1.0.90"
