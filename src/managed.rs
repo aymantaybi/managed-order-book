@@ -1,4 +1,5 @@
 use std::{
+    future::Future,
     pin::Pin,
     sync::Arc,
     task::{Context, Poll},
@@ -11,13 +12,20 @@ use tokio_tungstenite::{connect_async, tungstenite::Message, MaybeTlsStream, Web
 
 use crate::{quoter::Quoter, BinanceOrderBook, Depth, DepthUpdate};
 
-pub struct OrderBookStream {
+pub struct ManagedOrderBook<F>
+where
+    F: Fn(&BinanceOrderBook),
+{
     pub binance_order_book: BinanceOrderBook,
     pub web_socket_stream: WebSocketStream<MaybeTlsStream<TcpStream>>,
+    pub callback: F,
 }
 
-impl OrderBookStream {
-    pub async fn new(symbol: String) -> anyhow::Result<Self> {
+impl<F> ManagedOrderBook<F>
+where
+    F: Fn(&BinanceOrderBook),
+{
+    pub async fn new(symbol: String, callback: F) -> anyhow::Result<Self> {
         let url = format!(
             "wss://fstream.binance.com/ws/{}@depth@100ms",
             symbol.to_lowercase()
@@ -38,6 +46,7 @@ impl OrderBookStream {
         Ok(Self {
             binance_order_book,
             web_socket_stream,
+            callback,
         })
     }
 
@@ -46,23 +55,28 @@ impl OrderBookStream {
     }
 }
 
-impl Stream for OrderBookStream {
-    type Item = u64;
+impl<F> Future for ManagedOrderBook<F>
+where
+    F: Fn(&BinanceOrderBook) + Unpin,
+{
+    type Output = ();
 
-    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        let mut next = false;
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        let mut updated = false;
 
-        while let Poll::Ready(item) = self.web_socket_stream.poll_next_unpin(cx) {
+        let this = self.get_mut();
+
+        while let Poll::Ready(item) = this.web_socket_stream.poll_next_unpin(cx) {
             let message = item.unwrap().unwrap(); // todo
             if let Message::Text(text) = message {
                 let depth_update: DepthUpdate = serde_json::from_str(&text).unwrap();
-                let _ = self.binance_order_book.update(depth_update);
-                next = true;
+                let _ = this.binance_order_book.update(depth_update);
+                updated = true;
             }
         }
 
-        if next {
-            return Poll::Ready(Some(69));
+        if updated {
+            (this.callback)(this.book());
         }
 
         Poll::Pending

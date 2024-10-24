@@ -1,15 +1,14 @@
-use futures_util::StreamExt;
-use orderbook_quoter::stream::OrderBookStream;
+use orderbook_quoter::{managed::ManagedOrderBook, BinanceOrderBook};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let symbol = "CRVUSDC";
 
-    let mut s = OrderBookStream::new(symbol.to_string()).await?;
+    let callback = |book: &BinanceOrderBook| book.print(5);
 
-    while let Some(item) = s.next().await {
-        s.book().print(2);
-    }
+    let m = ManagedOrderBook::new(symbol.to_string(), callback).await?;
+
+    m.await;
 
     Ok(())
 }

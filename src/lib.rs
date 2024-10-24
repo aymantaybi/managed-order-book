@@ -4,8 +4,8 @@ use rust_decimal::{prelude::Zero, Decimal};
 use serde::Deserialize;
 use std::collections::BTreeMap;
 
+pub mod managed;
 pub mod quoter;
-pub mod stream;
 
 pub trait OrderBook {
     /// Returns the price decimal points
@@ -188,7 +188,7 @@ impl Quoter for BinanceOrderBook {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Depth {
     last_update_id: u128,
@@ -200,7 +200,7 @@ pub struct Depth {
     asks: Vec<(Decimal, Decimal)>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct DepthUpdate {
     #[serde(rename = "e")]
