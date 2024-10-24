@@ -1,4 +1,4 @@
-use orderbook_quoter::{managed::ManagedBinanceOrderBook, BinanceOrderBook};
+use managed_order_book::{managed::ManagedBinanceOrderBook, BinanceOrderBook};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

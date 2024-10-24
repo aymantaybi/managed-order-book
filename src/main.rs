@@ -1,5 +1,5 @@
 use futures_util::StreamExt;
-use orderbook_quoter::{quoter::Quoter, BinanceOrderBook, Depth, DepthUpdate, OrderBook};
+use managed_order_book::{quoter::Quoter, BinanceOrderBook, Depth, DepthUpdate, OrderBook};
 use rust_decimal::Decimal;
 use tokio_tungstenite::{connect_async, tungstenite::Message};
 
