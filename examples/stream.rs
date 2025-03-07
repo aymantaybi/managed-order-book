@@ -1,5 +1,5 @@
 use futures_util::StreamExt;
-use managed_order_book::{managed::ManagedBinanceOrderBook, quoter::Quoter, BinanceOrderBook};
+use managed_order_book::{managed::ManagedBinanceOrderBook, quoter::Quoter};
 use reqwest::Proxy;
 use rust_decimal::Decimal;
 

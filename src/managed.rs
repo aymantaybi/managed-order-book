@@ -1,21 +1,17 @@
 use std::{
-    future::Future,
     pin::Pin,
-    sync::Arc,
     task::{Context, Poll},
 };
 
 use futures_util::{Stream, StreamExt};
-use reqwest::Proxy;
-use rust_decimal::{prelude::Zero, Decimal};
 use tokio::net::TcpStream;
 use tokio_tungstenite::{
     connect_async,
-    tungstenite::{client, Message},
+    tungstenite::Message,
     MaybeTlsStream, WebSocketStream,
 };
 
-use crate::{quoter::Quoter, BinanceOrderBook, Depth, DepthUpdate};
+use crate::{BinanceOrderBook, Depth, DepthUpdate};
 
 pub struct ManagedBinanceOrderBook {
     pub binance_order_book: BinanceOrderBook,
