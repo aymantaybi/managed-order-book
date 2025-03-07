@@ -6,9 +6,14 @@ use std::{
 };
 
 use futures_util::{Stream, StreamExt};
+use reqwest::Proxy;
 use rust_decimal::{prelude::Zero, Decimal};
 use tokio::net::TcpStream;
-use tokio_tungstenite::{connect_async, tungstenite::Message, MaybeTlsStream, WebSocketStream};
+use tokio_tungstenite::{
+    connect_async,
+    tungstenite::{client, Message},
+    MaybeTlsStream, WebSocketStream,
+};
 
 use crate::{quoter::Quoter, BinanceOrderBook, Depth, DepthUpdate};
 
@@ -19,7 +24,7 @@ pub struct ManagedBinanceOrderBook {
 }
 
 impl ManagedBinanceOrderBook {
-    pub async fn new(symbol: String) -> anyhow::Result<Self> {
+    pub async fn new(client: reqwest::Client, symbol: String) -> anyhow::Result<Self> {
         let url = format!(
             "wss://fstream.binance.com/ws/{}@depth@100ms",
             symbol.to_lowercase()
@@ -27,13 +32,15 @@ impl ManagedBinanceOrderBook {
 
         let (web_socket_stream, _) = connect_async(url).await?;
 
-        let depth: Depth = reqwest::get(format!(
-            "https://fapi.binance.com/fapi/v1/depth?symbol={}&limit=1000",
-            symbol.to_uppercase()
-        ))
-        .await?
-        .json()
-        .await?;
+        let depth: Depth = client
+            .get(format!(
+                "https://fapi.binance.com/fapi/v1/depth?symbol={}&limit=1000",
+                symbol.to_uppercase()
+            ))
+            .send()
+            .await?
+            .json()
+            .await?;
 
         let binance_order_book = BinanceOrderBook::new(symbol.to_string(), depth);
 
