@@ -49,10 +49,10 @@ impl ManagedBinanceOrderBook {
     }
 }
 
-impl Future for ManagedBinanceOrderBook {
-    type Output = ();
+impl Stream for ManagedBinanceOrderBook {
+    type Item = ();
 
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         let this = self.get_mut();
         this.updated = false;
 
@@ -65,6 +65,10 @@ impl Future for ManagedBinanceOrderBook {
             }
         }
 
-        Poll::Pending
+        if this.updated {
+            Poll::Ready(Some(()))
+        } else {
+            Poll::Pending
+        }
     }
 }
